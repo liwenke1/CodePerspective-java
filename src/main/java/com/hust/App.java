@@ -3,14 +3,14 @@ package com.hust;
 import java.io.*;
 import java.util.*;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.hust.antlr.JavaLexer;
 import com.hust.antlr.JavaParser;
-import com.hust.antlr.JavaParserListener;
 import com.hust.model.JavaExtract;
 
 /**
@@ -75,7 +75,7 @@ public class App {
             String code = readToString(fileList.get(i));
             code = "class _a {" + code + "}";
             try {
-                ANTLRInputStream input = new ANTLRInputStream(code);
+                CharStream input = CharStreams.fromString(code);
                 JavaLexer lexer = new JavaLexer(input);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 JavaParser parser = new JavaParser(tokens);

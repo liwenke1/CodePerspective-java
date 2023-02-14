@@ -32,30 +32,30 @@ import com.hust.antlr.JavaParser.VariableDeclaratorContext;
 public class JavaExtract extends JavaParserBaseListener {
 
     // function based features
-    int functionNumber;
-    List<Function> functionList;
-    int lambdaFunctionNumber;
+    public int functionNumber;
+    public List<Function> functionList;
+    public int lambdaFunctionNumber;
 
     // class based features
-    List<String> classNameList;
-    int classNumber;
-    List<String> classVariableNameList;
-    int classVariableNumber;
+    public List<String> classNameList;
+    public int classNumber;
+    public List<String> classVariableNameList;
+    public int classVariableNumber;
 
     // quote
-    List<String> importNameList;
-    int importNumber;
+    public List<String> importNameList;
+    public int importNumber;
 
     // code style
-    List<String> exceptionNameList;
-    int exceptionNumber;
-    List<String> packageNameList;
-    int packageNumber;
-    int ternaryOperatorNumber;
-    int controlStructureNumber;
-    int literalNumber;
+    public List<String> exceptionNameList;
+    public int exceptionNumber;
+    public List<String> packageNameList;
+    public int packageNumber;
+    public int ternaryOperatorNumber;
+    public int controlStructureNumber;
+    public int literalNumber;
 
-    Map<String, Integer> accessControlCount;
+    public Map<String, Integer> accessControlCount;
 
     public JavaExtract() {
         // function based features
@@ -221,14 +221,14 @@ public class JavaExtract extends JavaParserBaseListener {
                 IdentifierContext identifier = ctx.identifier();
                 this.functionList.get(this.functionList.size() - 1).localVariables
                         .add(new Variable(identifier.getText(),
-                                typeName, identifier.start.getLine(), identifier.stop.getLine()));
+                                typeName, identifier.start.getLine(), identifier.start.getCharPositionInLine()));
             } else {
                 List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
                 for (VariableDeclaratorContext variable : variableList) {
                     this.functionList.get(this.functionList.size() - 1).localVariables
                             .add(new Variable(variable.variableDeclaratorId().getText(), typeName,
                                     variable.variableDeclaratorId().start.getLine(),
-                                    variable.variableDeclaratorId().stop.getLine()));
+                                    variable.variableDeclaratorId().start.getCharPositionInLine()));
                 }
             }
         }
