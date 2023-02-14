@@ -19,25 +19,33 @@
  notice, this list of conditions and the following disclaimer in the
  documentation
  and/or other materials provided with the distribution.
- 3. The name of the author may not be used
+ 3. The name of the author
+ may not be used
  to endorse or promote products
- derived from this software without specific prior written
+ derived from this software without specific prior
+ written
  permission.
  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS
+ OF MERCHANTABILITY AND
+ FITNESS
  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ DIRECT,
  INDIRECT,
  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- NOT LIMITED
+ NOT
+ LIMITED
  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- DATA, OR PROFITS; OR BUSINESS
+ DATA, OR PROFITS; OR
+ BUSINESS
  INTERRUPTION) HOWEVER CAUSED AND ON ANY
- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ STRICT
  LIABILITY, OR TORT
- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF
  THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -83,7 +91,7 @@ classOrInterfaceModifier:
 	| FINAL // FINAL for class only -- does not apply to interfaces
 	| STRICTFP
 	| SEALED // Java17
-	| NON_SEALED ; // Java17
+	| NON_SEALED; // Java17
 
 variableModifier: FINAL | annotation;
 
@@ -176,7 +184,7 @@ interfaceMemberDeclaration:
 	| annotationTypeDeclaration
 	| classDeclaration
 	| enumDeclaration
-	| recordDeclaration ; // Java17
+	| recordDeclaration; // Java17
 
 constDeclaration:
 	typeType constantDeclarator (',' constantDeclarator)* ';';
@@ -262,7 +270,7 @@ literal:
 	| STRING_LITERAL
 	| BOOL_LITERAL
 	| NULL_LITERAL
-	| TEXT_BLOCK ; // Java17
+	| TEXT_BLOCK; // Java17
 
 integerLiteral:
 	DECIMAL_LITERAL
@@ -298,7 +306,7 @@ annotationTypeBody: '{' (annotationTypeElementDeclaration)* '}';
 
 annotationTypeElementDeclaration:
 	modifier* annotationTypeElementRest
-	| ';' ; // this is not allowed by the grammar, but apparently allowed by the actual compiler
+	| ';'; // this is not allowed by the grammar, but apparently allowed by the actual compiler
 
 annotationTypeElementRest:
 	typeType annotationMethodOrConstantRest ';'
@@ -306,7 +314,7 @@ annotationTypeElementRest:
 	| interfaceDeclaration ';'?
 	| enumDeclaration ';'?
 	| annotationTypeDeclaration ';'?
-	| recordDeclaration ';'? ; // Java17
+	| recordDeclaration ';'?; // Java17
 
 annotationMethodOrConstantRest:
 	annotationMethodRest
@@ -382,7 +390,7 @@ identifier:
 	| RECORD
 	| VAR;
 
-typeIdentifier : // Identifiers that are not restricted for type declarations
+typeIdentifier: // Identifiers that are not restricted for type declarations
 	IDENTIFIER
 	| MODULE
 	| OPEN
@@ -446,7 +454,7 @@ resource:
 
 /** Matches cases then statements, both of which are mandatory.
  To handle empty cases at the end,
- * we add switchLabel* to statement.
+ we add switchLabel* to statement.
  */
 switchBlockStatementGroup: switchLabel+ blockStatement+;
 

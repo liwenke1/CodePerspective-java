@@ -1,6 +1,5 @@
-// Generated from java-escape by ANTLR 4.11.1
-package com.hust.antlr;
 
+// Generated from java-escape by ANTLR 4.11.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
