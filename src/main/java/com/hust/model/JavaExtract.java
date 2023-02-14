@@ -9,15 +9,25 @@ import com.hust.antlr.JavaParserBaseListener;
 import com.hust.antlr.JavaParser.CatchTypeContext;
 import com.hust.antlr.JavaParser.ClassDeclarationContext;
 import com.hust.antlr.JavaParser.ClassOrInterfaceModifierContext;
-import com.hust.antlr.JavaParser.CompilationUnitContext;
+import com.hust.antlr.JavaParser.ConstructorDeclarationContext;
 import com.hust.antlr.JavaParser.ExpressionContext;
+import com.hust.antlr.JavaParser.FieldDeclarationContext;
+import com.hust.antlr.JavaParser.FormalParameterContext;
+import com.hust.antlr.JavaParser.FormalParameterListContext;
+import com.hust.antlr.JavaParser.IdentifierContext;
 import com.hust.antlr.JavaParser.ImportDeclarationContext;
+import com.hust.antlr.JavaParser.InterfaceCommonBodyDeclarationContext;
 import com.hust.antlr.JavaParser.LambdaExpressionContext;
+import com.hust.antlr.JavaParser.LastFormalParameterContext;
 import com.hust.antlr.JavaParser.LiteralContext;
+import com.hust.antlr.JavaParser.LocalVariableDeclarationContext;
+import com.hust.antlr.JavaParser.MethodCallContext;
 import com.hust.antlr.JavaParser.MethodDeclarationContext;
 import com.hust.antlr.JavaParser.PackageDeclarationContext;
 import com.hust.antlr.JavaParser.QualifiedNameContext;
+import com.hust.antlr.JavaParser.ReceiverParameterContext;
 import com.hust.antlr.JavaParser.StatementContext;
+import com.hust.antlr.JavaParser.VariableDeclaratorContext;
 
 public class JavaExtract extends JavaParserBaseListener {
 
@@ -105,8 +115,8 @@ public class JavaExtract extends JavaParserBaseListener {
 
     @Override
     public void enterCatchType(CatchTypeContext ctx) {
-        List<QualifiedNameContext> exceptions = ctx.qualifiedName();
-        for (QualifiedNameContext exception : exceptions) {
+        List<QualifiedNameContext> exceptionList = ctx.qualifiedName();
+        for (QualifiedNameContext exception : exceptionList) {
             String exceptionName = exception.getText();
             this.exceptionNameList.add(exceptionName);
             this.exceptionNumber += 1;
@@ -118,8 +128,8 @@ public class JavaExtract extends JavaParserBaseListener {
     public void enterMethodDeclaration(MethodDeclarationContext ctx) {
         // capture exception name and number
         if (ctx.THROWS() != null) {
-            List<QualifiedNameContext> exceptions = ctx.qualifiedNameList().qualifiedName();
-            for (QualifiedNameContext exception : exceptions) {
+            List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
+            for (QualifiedNameContext exception : exceptionList) {
                 String exceptionName = exception.getText();
                 this.exceptionNameList.add(exceptionName);
                 this.exceptionNumber += 1;
@@ -136,14 +146,110 @@ public class JavaExtract extends JavaParserBaseListener {
         List<Variable> functionParams = new ArrayList<Variable>();
         // capture function params --- receiver parameter
         if (ctx.formalParameters().receiverParameter() != null) {
-
+            ReceiverParameterContext receiverParams = ctx.formalParameters().receiverParameter();
+            String typeName = receiverParams.typeType().getText();
+            List<IdentifierContext> params = receiverParams.identifier();
+            for (IdentifierContext param : params) {
+                functionParams.add(new Variable(typeName, param.getText()));
+            }
         }
         // capture function params --- formal parameter
         if (ctx.formalParameters().formalParameterList() != null) {
-
+            FormalParameterListContext formalParamList = ctx.formalParameters().formalParameterList();
+            if (formalParamList.lastFormalParameter() != null) {
+                LastFormalParameterContext lastFormalParam = formalParamList.lastFormalParameter();
+                functionParams.add(new Variable(lastFormalParam.typeType().getText(),
+                        lastFormalParam.variableDeclaratorId().getText()));
+            }
+            if (formalParamList.formalParameter() != null) {
+                List<FormalParameterContext> formalParams = formalParamList.formalParameter();
+                for (FormalParameterContext formalParam : formalParams) {
+                    functionParams.add(new Variable(formalParam.typeType().getText(),
+                            formalParam.variableDeclaratorId().getText()));
+                }
+            }
         }
 
+        // add function list
+        this.functionList
+                .add(new Function(functionName, functionBody, functionStartLine, functionStopLine, functionParams));
+        this.functionNumber += 1;
         super.enterMethodDeclaration(ctx);
+    }
+
+    @Override
+    public void enterInterfaceCommonBodyDeclaration(InterfaceCommonBodyDeclarationContext ctx) {
+        if (ctx.THROWS() != null) {
+            List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
+            for (QualifiedNameContext exception : exceptionList) {
+                String exceptionName = exception.getText();
+                this.exceptionNameList.add(exceptionName);
+                this.exceptionNumber += 1;
+            }
+        }
+        super.enterInterfaceCommonBodyDeclaration(ctx);
+    }
+
+    @Override
+    public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
+        if (ctx.THROWS() != null) {
+            List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
+            for (QualifiedNameContext exception : exceptionList) {
+                String exceptionName = exception.getText();
+                this.exceptionNameList.add(exceptionName);
+                this.exceptionNumber += 1;
+            }
+        }
+        super.enterConstructorDeclaration(ctx);
+    }
+
+    @Override
+    public void enterFieldDeclaration(FieldDeclarationContext ctx) {
+        List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
+        for (VariableDeclaratorContext variable : variableList) {
+            this.classNameList.add(variable.variableDeclaratorId().getText());
+            this.classNumber += 1;
+        }
+        super.enterFieldDeclaration(ctx);
+    }
+
+    @Override
+    public void enterLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
+        String typeName = ctx.typeType().getText();
+        if (this.functionList.size() != 0) {
+            if (ctx.identifier() != null) {
+                IdentifierContext identifier = ctx.identifier();
+                this.functionList.get(this.functionList.size() - 1).localVariables
+                        .add(new Variable(identifier.getText(),
+                                typeName, identifier.start.getLine(), identifier.stop.getLine()));
+            } else {
+                List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
+                for (VariableDeclaratorContext variable : variableList) {
+                    this.functionList.get(this.functionList.size() - 1).localVariables
+                            .add(new Variable(variable.variableDeclaratorId().getText(), typeName,
+                                    variable.variableDeclaratorId().start.getLine(),
+                                    variable.variableDeclaratorId().stop.getLine()));
+                }
+            }
+        }
+        super.enterLocalVariableDeclaration(ctx);
+    }
+
+    @Override
+    public void enterMethodCall(MethodCallContext ctx) {
+        int functionCallLine = ctx.start.getLine();
+        int functionCallColumn = ctx.start.getCharPositionInLine();
+        String functionCallName = new String("");
+        if (ctx.identifier() != null) {
+            functionCallName = ctx.identifier().getText();
+        }
+        if (this.functionList.size() != 0
+                && functionCallLine >= this.functionList.get(this.functionList.size() - 1).startLine
+                && functionCallLine <= this.functionList.get(this.functionList.size() - 1).endLine) {
+            this.functionList.get(this.functionList.size() - 1).functionCalls
+                    .add(new FunctionCall(functionCallName, functionCallLine, functionCallColumn));
+        }
+        super.enterMethodCall(ctx);
     }
 
     @Override

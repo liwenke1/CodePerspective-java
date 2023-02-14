@@ -11,8 +11,9 @@ public class Variable {
         this.type = type;
     }
 
-    public Variable(String name, int startLine, int endLine) {
+    public Variable(String name, String type, int startLine, int endLine) {
         this.name = name;
+        this.type = type;
         this.startLine = startLine;
         this.endLine = endLine;
     }
