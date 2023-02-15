@@ -123,6 +123,23 @@ public class FileParser {
         fileFeatures.put("CommentNumber", new ScalarResult(tokens.getTokens(0, tokens.size() - 1, commentType).size()));
     }
 
+    public void calculateLiteralNumber() {
+        fileFeatures.put("LiteralNumber", new ScalarResult(listener.literalNumber));
+    }
+
+    public void calculateKeywordNumber(CommonTokenStream tokens) {
+        Set<Integer> keywordType = new HashSet<>();
+        // keyword type index is from 1 to 66
+        for (int i = 0; i <= 66; i++) {
+            keywordType.add(i);
+        }
+        fileFeatures.put("KeywordNumber", new ScalarResult(tokens.getTokens(0, tokens.size() - 1, keywordType).size()));
+    }
+
+    public void calculateFunctionNumber() {
+        fileFeatures.put("FunctionNumber", new ScalarResult(listener.functionList.size()));
+    }
+
     // calculate variable 方差
     private double calculateVariable(List<Double> list) {
         Double average = Double.valueOf(0), variance = Double.valueOf(0);
@@ -152,26 +169,33 @@ public class FileParser {
         return calculateVariable(variableRelativeLocation);
     }
 
-    public double calculateMeanOfFunctionParamNumber() {
+    public void calculateAverageAndVarianceOfFunctionParamNumber() {
         if (listener.functionList.size() == 0) {
-            return 0;
+            return;
         }
         int paramNumber = 0;
         for (Function function : listener.functionList) {
             paramNumber += function.params.size();
         }
-        return paramNumber / listener.functionList.size();
+        double averageParamNumber = paramNumber / listener.functionList.size(), variance = 0;
+        for (Function function : listener.functionList) {
+            variance += (Math.pow((function.params.size() - averageParamNumber), 2));
+        }
+        fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(averageParamNumber));
+        fileFeatures.put("VarianceOfFunctionParamNumber", new ScalarResult(variance));
     }
 
-    private double calculateVarianceOfFunctionParamNumber(double mean) {
-        if (listener.functionList.size() == 0) {
-            return 0;
+    public void calculateAverageAndVarianceOfLineLength(String[] fileAllLines) {
+        int lineTotalLength = 0;
+        for (String line : fileAllLines) {
+            lineTotalLength += line.length();
         }
-        double variance = 0;
-        for (Function function : listener.functionList) {
-            variance += (Math.pow((function.params.size() - mean), 2));
+        double averageLineLength = lineTotalLength / fileAllLines.length, variance = 0;
+        for (String line : fileAllLines) {
+            variance += (Math.pow((line.length() - averageLineLength), 2));
         }
-        return variance;
+        fileFeatures.put("AverageOfLineLength", new ScalarResult(averageLineLength));
+        fileFeatures.put("VarianceOfLineLength", new ScalarResult(variance));
     }
 
     private String[] readFileAllLines(String fileName) throws IOException {
