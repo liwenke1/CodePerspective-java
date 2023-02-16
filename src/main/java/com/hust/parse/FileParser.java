@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.hust.antlr.JavaLexer;
@@ -208,6 +209,69 @@ public class FileParser {
         fileFeatures.put("BranchingFactor", new ScalarResult(branchingFactor));
     }
 
+    public void calcluateWhiteSpaceChar(String fileData) {
+        int whiteSpaceNumber = 0;
+        int tabNumber = 0;
+        int spaceNumber = 0;
+        for (int i = 0; i < fileData.length(); i++) {
+            if (fileData.charAt(i) == '\t') {
+                tabNumber += 1;
+                whiteSpaceNumber += 1;
+            } else if (fileData.charAt(i) == ' ') {
+                spaceNumber += 1;
+                whiteSpaceNumber += 1;
+            } else if (Character.toString(fileData.charAt(i)).matches("\\s")) {
+                whiteSpaceNumber += 1;
+            }
+        }
+        fileFeatures.put("TabNumber", new ScalarResult(tabNumber));
+        fileFeatures.put("SpaceNumber", new ScalarResult(spaceNumber));
+        fileFeatures.put("WhiteSpaceNumber", new ScalarResult(whiteSpaceNumber));
+    }
+
+    public void calcluateTabOrSpaceLeadLinesAndEmptyLineNumber(String[] fileAllLines) {
+        int tabLeadNumber = 0;
+        int spaceLeadNumber = 0;
+        int emptyLineNumber = 0;
+        for (String line : fileAllLines) {
+            if (line.charAt(0) == '\t') {
+                tabLeadNumber += 1;
+            } else if (line.charAt(0) == ' ') {
+                spaceLeadNumber += 1;
+            }
+            if (line.matches("\\s*")) {
+                emptyLineNumber += 1;
+            }
+        }
+        fileFeatures.put("TabLeadLines", new ScalarResult(tabLeadNumber > spaceLeadNumber ? 1 : 0));
+        fileFeatures.put("EmptyLineNumber", new ScalarResult(emptyLineNumber));
+    }
+
+    public void calculateNewLineOrOnLineBeforeOpenBrance(CommonTokenStream tokens) {
+        int newLineNumber = 0;
+        int onLineNumber = 0;
+        for (Token token : tokens.getTokens()) {
+            if (token.getType() != JavaLexer.LBRACE) {
+                continue;
+            }
+            boolean newLine = false;
+            int tokenIndex = token.getTokenIndex();
+            for (int i = tokenIndex - 1; i >= 0; i--) {
+                int channel = tokens.get(i).getChannel();
+                if (channel == JavaLexer.DEFAULT_TOKEN_CHANNEL) {
+                    if (newLine) {
+                        newLineNumber += 1;
+                    } else {
+                        onLineNumber += 1;
+                    }
+                } else if (channel == JavaLexer.SPACE) {
+                    newLine = true;
+                }
+            }
+        }
+        fileFeatures.put("NewLineBeforeOpenBrance", new ScalarResult(newLineNumber > onLineNumber ? 1 : 0));
+    }
+
     private String[] readFileAllLines(String fileName) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(fileName));
         try {
@@ -231,6 +295,7 @@ public class FileParser {
         }
         String fileData = String.join("\n", fileAllLines);
         fileFeatures.put("FileLength", new ScalarResult(fileData.length()));
+        fileFeatures.put("FileLineNumber", new ScalarResult(fileAllLines.length));
     }
 
     public static void main(String[] args) {
@@ -245,13 +310,14 @@ public class FileParser {
         // System.out.println("end(): " + m.end());
         // }
         try {
-            CharStream charStream = CharStreams.fromFileName("target\\test.java");
+            CharStream charStream = CharStreams.fromFileName("src/main/java/com/hust/model/Function.java");
             JavaLexer lexer = new JavaLexer(charStream);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             JavaParser parser = new JavaParser(tokens);
             ParseTreeWalker walker = new ParseTreeWalker();
             JavaExtract listener = new JavaExtract();
             walker.walk(listener, parser.compilationUnit());
+            System.out.println(tokens.getNumberOfOnChannelTokens());
         } catch (IOException e) {
             System.out.println(e);
         }
