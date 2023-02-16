@@ -25,6 +25,7 @@ import com.hust.model.Variable;
 import com.hust.output.DictResult;
 import com.hust.output.Result;
 import com.hust.output.ScalarResult;
+import com.hust.tools.Util;
 
 public class FileParser {
     JavaExtract listener;
@@ -173,29 +174,25 @@ public class FileParser {
         if (listener.functionList.size() == 0) {
             return;
         }
-        int paramNumber = 0;
-        for (Function function : listener.functionList) {
-            paramNumber += function.params.size();
+        int[] functionParamNumber = new int[listener.functionList.size()];
+        for (int i = 0; i < listener.functionList.size(); i++) {
+            functionParamNumber[i] = listener.functionList.get(i).params.size();
         }
-        double averageParamNumber = paramNumber / listener.functionList.size(), variance = 0;
-        for (Function function : listener.functionList) {
-            variance += (Math.pow((function.params.size() - averageParamNumber), 2));
-        }
-        fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(averageParamNumber));
-        fileFeatures.put("VarianceOfFunctionParamNumber", new ScalarResult(variance));
+        fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(Util.mean(functionParamNumber)));
+        fileFeatures.put("VarianceOfFunctionParamNumber",
+                new ScalarResult(Util.standardDeviation(functionParamNumber)));
     }
 
     public void calculateAverageAndVarianceOfLineLength(String[] fileAllLines) {
-        int lineTotalLength = 0;
-        for (String line : fileAllLines) {
-            lineTotalLength += line.length();
+        if (fileAllLines.length == 0) {
+            return;
         }
-        double averageLineLength = lineTotalLength / fileAllLines.length, variance = 0;
-        for (String line : fileAllLines) {
-            variance += (Math.pow((line.length() - averageLineLength), 2));
+        int[] lineLength = new int[fileAllLines.length];
+        for (int i = 0; i < fileAllLines.length; i++) {
+            lineLength[i] = fileAllLines[i].length();
         }
-        fileFeatures.put("AverageOfLineLength", new ScalarResult(averageLineLength));
-        fileFeatures.put("VarianceOfLineLength", new ScalarResult(variance));
+        fileFeatures.put("AverageOfLineLength", new ScalarResult(Util.mean(lineLength)));
+        fileFeatures.put("VarianceOfLineLength", new ScalarResult(Util.standardDeviation(lineLength)));
     }
 
     public void calculateNestingDepth() {
