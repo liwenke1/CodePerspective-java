@@ -198,6 +198,19 @@ public class FileParser {
         fileFeatures.put("VarianceOfLineLength", new ScalarResult(variance));
     }
 
+    public void calculateNestingDepth() {
+        fileFeatures.put("NestingDepth", new ScalarResult(listener.nestingDepth));
+    }
+
+    public void calculateBranchingFactor() {
+        double branchingFactor = 0;
+        for (int branchingNumber : listener.branchingNumberList) {
+            branchingFactor += branchingNumber;
+        }
+        branchingFactor /= listener.branchingNumberList.size();
+        fileFeatures.put("BranchingFactor", new ScalarResult(branchingFactor));
+    }
+
     private String[] readFileAllLines(String fileName) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(fileName));
         try {

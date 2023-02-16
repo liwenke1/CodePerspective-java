@@ -54,62 +54,67 @@ public class JavaExtract extends JavaParserBaseListener {
     public int ternaryOperatorNumber;
     public int controlStructureNumber;
     public int literalNumber;
+    public int nestingDepth;
+    private int nestingLocalDepth;
+    public List<Integer> branchingNumberList;
 
     public Map<String, Integer> accessControlCount;
 
     public JavaExtract() {
         // function based features
-        this.functionNumber = 0;
-        this.functionList = new ArrayList<Function>();
-        this.lambdaFunctionNumber = 0;
+        functionNumber = 0;
+        functionList = new ArrayList<Function>();
+        lambdaFunctionNumber = 0;
 
         // class based features
-        this.classNameList = new ArrayList<String>();
-        this.classNumber = 0;
-        this.classVariableNameList = new ArrayList<String>();
-        this.classVariableNumber = 0;
+        classNameList = new ArrayList<String>();
+        classNumber = 0;
+        classVariableNameList = new ArrayList<String>();
+        classVariableNumber = 0;
 
         // quote
-        this.importNameList = new ArrayList<String>();
-        this.importNumber = 0;
+        importNameList = new ArrayList<String>();
+        importNumber = 0;
 
         // code style
-        this.exceptionNameList = new ArrayList<String>();
-        this.exceptionNumber = 0;
-        this.packageNameList = new ArrayList<String>();
-        this.packageNumber = 0;
-        this.ternaryOperatorNumber = 0;
-        this.controlStructureNumber = 0;
-        this.literalNumber = 0;
+        exceptionNameList = new ArrayList<String>();
+        exceptionNumber = 0;
+        packageNameList = new ArrayList<String>();
+        packageNumber = 0;
+        ternaryOperatorNumber = 0;
+        controlStructureNumber = 0;
+        literalNumber = 0;
+        nestingDepth = 0;
+        nestingLocalDepth = 0;
 
-        this.accessControlCount = new HashMap<String, Integer>();
-        this.accessControlCount.put("Default", 0);
-        this.accessControlCount.put("Public", 0);
-        this.accessControlCount.put("Protected", 0);
-        this.accessControlCount.put("Private", 0);
+        accessControlCount = new HashMap<String, Integer>();
+        accessControlCount.put("Default", 0);
+        accessControlCount.put("Public", 0);
+        accessControlCount.put("Protected", 0);
+        accessControlCount.put("Private", 0);
     }
 
     @Override
     public void enterPackageDeclaration(PackageDeclarationContext ctx) {
         String packageName = ctx.qualifiedName().getText();
-        this.packageNameList.add(packageName);
-        this.packageNumber += 1;
+        packageNameList.add(packageName);
+        packageNumber += 1;
         super.enterPackageDeclaration(ctx);
     }
 
     @Override
     public void enterImportDeclaration(ImportDeclarationContext ctx) {
         String importName = ctx.qualifiedName().getText();
-        this.importNameList.add(importName);
-        this.importNumber += 1;
+        importNameList.add(importName);
+        importNumber += 1;
         super.enterImportDeclaration(ctx);
     }
 
     @Override
     public void enterClassDeclaration(ClassDeclarationContext ctx) {
         String className = ctx.identifier().getText();
-        this.classNameList.add(className);
-        this.classNumber += 1;
+        classNameList.add(className);
+        classNumber += 1;
         super.enterClassDeclaration(ctx);
     }
 
@@ -118,8 +123,8 @@ public class JavaExtract extends JavaParserBaseListener {
         List<QualifiedNameContext> exceptionList = ctx.qualifiedName();
         for (QualifiedNameContext exception : exceptionList) {
             String exceptionName = exception.getText();
-            this.exceptionNameList.add(exceptionName);
-            this.exceptionNumber += 1;
+            exceptionNameList.add(exceptionName);
+            exceptionNumber += 1;
         }
         super.enterCatchType(ctx);
     }
@@ -131,8 +136,8 @@ public class JavaExtract extends JavaParserBaseListener {
             List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
             for (QualifiedNameContext exception : exceptionList) {
                 String exceptionName = exception.getText();
-                this.exceptionNameList.add(exceptionName);
-                this.exceptionNumber += 1;
+                exceptionNameList.add(exceptionName);
+                exceptionNumber += 1;
             }
         }
 
@@ -171,9 +176,9 @@ public class JavaExtract extends JavaParserBaseListener {
         }
 
         // add function list
-        this.functionList
+        functionList
                 .add(new Function(functionName, functionBody, functionStartLine, functionStopLine, functionParams));
-        this.functionNumber += 1;
+        functionNumber += 1;
         super.enterMethodDeclaration(ctx);
     }
 
@@ -183,8 +188,8 @@ public class JavaExtract extends JavaParserBaseListener {
             List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
             for (QualifiedNameContext exception : exceptionList) {
                 String exceptionName = exception.getText();
-                this.exceptionNameList.add(exceptionName);
-                this.exceptionNumber += 1;
+                exceptionNameList.add(exceptionName);
+                exceptionNumber += 1;
             }
         }
         super.enterInterfaceCommonBodyDeclaration(ctx);
@@ -196,8 +201,8 @@ public class JavaExtract extends JavaParserBaseListener {
             List<QualifiedNameContext> exceptionList = ctx.qualifiedNameList().qualifiedName();
             for (QualifiedNameContext exception : exceptionList) {
                 String exceptionName = exception.getText();
-                this.exceptionNameList.add(exceptionName);
-                this.exceptionNumber += 1;
+                exceptionNameList.add(exceptionName);
+                exceptionNumber += 1;
             }
         }
         super.enterConstructorDeclaration(ctx);
@@ -207,8 +212,8 @@ public class JavaExtract extends JavaParserBaseListener {
     public void enterFieldDeclaration(FieldDeclarationContext ctx) {
         List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
         for (VariableDeclaratorContext variable : variableList) {
-            this.classNameList.add(variable.variableDeclaratorId().getText());
-            this.classNumber += 1;
+            classNameList.add(variable.variableDeclaratorId().getText());
+            classNumber += 1;
         }
         super.enterFieldDeclaration(ctx);
     }
@@ -216,16 +221,16 @@ public class JavaExtract extends JavaParserBaseListener {
     @Override
     public void enterLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
         String typeName = ctx.typeType().getText();
-        if (this.functionList.size() != 0) {
+        if (functionList.size() != 0) {
             if (ctx.identifier() != null) {
                 IdentifierContext identifier = ctx.identifier();
-                this.functionList.get(this.functionList.size() - 1).localVariables
+                functionList.get(functionList.size() - 1).localVariables
                         .add(new Variable(identifier.getText(),
                                 typeName, identifier.start.getLine(), identifier.start.getCharPositionInLine()));
             } else {
                 List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
                 for (VariableDeclaratorContext variable : variableList) {
-                    this.functionList.get(this.functionList.size() - 1).localVariables
+                    functionList.get(functionList.size() - 1).localVariables
                             .add(new Variable(variable.variableDeclaratorId().getText(), typeName,
                                     variable.variableDeclaratorId().start.getLine(),
                                     variable.variableDeclaratorId().start.getCharPositionInLine()));
@@ -243,10 +248,10 @@ public class JavaExtract extends JavaParserBaseListener {
         if (ctx.identifier() != null) {
             functionCallName = ctx.identifier().getText();
         }
-        if (this.functionList.size() != 0
-                && functionCallLine >= this.functionList.get(this.functionList.size() - 1).startLine
-                && functionCallLine <= this.functionList.get(this.functionList.size() - 1).endLine) {
-            this.functionList.get(this.functionList.size() - 1).functionCalls
+        if (functionList.size() != 0
+                && functionCallLine >= functionList.get(functionList.size() - 1).startLine
+                && functionCallLine <= functionList.get(functionList.size() - 1).endLine) {
+            functionList.get(functionList.size() - 1).functionCalls
                     .add(new FunctionCall(functionCallName, functionCallLine, functionCallColumn));
         }
         super.enterMethodCall(ctx);
@@ -254,14 +259,14 @@ public class JavaExtract extends JavaParserBaseListener {
 
     @Override
     public void enterLambdaExpression(LambdaExpressionContext ctx) {
-        this.lambdaFunctionNumber += 1;
+        lambdaFunctionNumber += 1;
         super.enterLambdaExpression(ctx);
     }
 
     @Override
     public void enterExpression(ExpressionContext ctx) {
         if (ctx.bop != null && ctx.bop.getText() == "?") {
-            this.ternaryOperatorNumber += 1;
+            ternaryOperatorNumber += 1;
         }
         super.enterExpression(ctx);
     }
@@ -270,27 +275,43 @@ public class JavaExtract extends JavaParserBaseListener {
     public void enterStatement(StatementContext ctx) {
         if (ctx.IF() != null || ctx.ELSE() != null || ctx.DO() != null || ctx.WHILE() != null || ctx.FOR() != null
                 || ctx.SWITCH() != null) {
-            this.controlStructureNumber += 1;
+            controlStructureNumber += 1;
+
+            // record current nesting depth and refresh nestingDepth
+            nestingLocalDepth += 1;
+            if (nestingLocalDepth > nestingDepth) {
+                nestingDepth = nestingLocalDepth;
+            }
+
+            // record the number of subtree of control or loop statement
+            branchingNumberList.add(ctx.getChildCount());
         }
         super.enterStatement(ctx);
     }
 
     @Override
+    public void exitStatement(StatementContext ctx) {
+        // record current nesting depth
+        nestingLocalDepth -= 1;
+        super.exitStatement(ctx);
+    }
+
+    @Override
     public void enterLiteral(LiteralContext ctx) {
-        this.literalNumber += 1;
+        literalNumber += 1;
         super.enterLiteral(ctx);
     }
 
     @Override
     public void enterClassOrInterfaceModifier(ClassOrInterfaceModifierContext ctx) {
         if (ctx.PUBLIC() != null) {
-            this.accessControlCount.put("Public", this.accessControlCount.get("Public") + 1);
+            accessControlCount.put("Public", accessControlCount.get("Public") + 1);
         } else if (ctx.PROTECTED() != null) {
-            this.accessControlCount.put("Protected", this.accessControlCount.get("Protected") + 1);
+            accessControlCount.put("Protected", accessControlCount.get("Protected") + 1);
         } else if (ctx.PRIVATE() != null) {
-            this.accessControlCount.put("Private", this.accessControlCount.get("Private") + 1);
+            accessControlCount.put("Private", accessControlCount.get("Private") + 1);
         } else {
-            this.accessControlCount.put("Default", this.accessControlCount.get("Default") + 1);
+            accessControlCount.put("Default", accessControlCount.get("Default") + 1);
         }
         super.enterClassOrInterfaceModifier(ctx);
     }
