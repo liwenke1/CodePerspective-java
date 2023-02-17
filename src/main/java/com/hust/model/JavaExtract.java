@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 import com.hust.antlr.JavaParserBaseListener;
 import com.hust.antlr.JavaParser.CatchTypeContext;
 import com.hust.antlr.JavaParser.ClassDeclarationContext;
@@ -57,8 +61,14 @@ public class JavaExtract extends JavaParserBaseListener {
     public int nestingDepth;
     private int nestingLocalDepth;
     public List<Integer> branchingNumberList;
-
     public Map<String, Integer> accessControlCount;
+
+    // AST based features
+    public List<Integer> typeNodeDepth;
+    public List<Integer> leafNodeDepth;
+    public Map<String, Double> typeNodeFrequency;
+    public Map<String, Double> leafNodeFrequency;
+    public Map<String, Double> keywordFrequency;
 
     public JavaExtract() {
         // function based features
@@ -92,6 +102,12 @@ public class JavaExtract extends JavaParserBaseListener {
         accessControlCount.put("Public", 0);
         accessControlCount.put("Protected", 0);
         accessControlCount.put("Private", 0);
+
+        typeNodeDepth = new ArrayList<Integer>();
+        leafNodeDepth = new ArrayList<Integer>();
+        typeNodeFrequency = new HashMap<String, Double>();
+        leafNodeFrequency = new HashMap<String, Double>();
+        keywordFrequency = new HashMap<String, Double>();
     }
 
     @Override
@@ -314,5 +330,48 @@ public class JavaExtract extends JavaParserBaseListener {
             accessControlCount.put("Default", accessControlCount.get("Default") + 1);
         }
         super.enterClassOrInterfaceModifier(ctx);
+    }
+
+    @Override
+    public void enterEveryRule(ParserRuleContext ctx) {
+        // calculate node depth, including type node and leaf node
+        typeNodeDepth.add(ctx.depth());
+        for (ParseTree child : ctx.children) {
+            if (child instanceof TerminalNode) {
+                leafNodeDepth.add(ctx.depth() + 1);
+            }
+        }
+
+        // calculate type node frequency
+        String type = String.valueOf(ctx.getRuleIndex());
+        if (typeNodeFrequency.containsKey(type)) {
+            typeNodeFrequency.put(type, typeNodeFrequency.get(type) + 1);
+        } else {
+            typeNodeFrequency.put(type, Double.valueOf(1));
+        }
+        super.enterEveryRule(ctx);
+    }
+
+    @Override
+    public void visitTerminal(TerminalNode node) {
+        int type = node.getSymbol().getType();
+        String text = node.getText();
+
+        // calculate java keyword frequency
+        if (type >= 1 && type <= 66) {
+            if (keywordFrequency.containsKey(text)) {
+                keywordFrequency.put(text, keywordFrequency.get(text) + 1);
+            } else {
+                keywordFrequency.put(text, Double.valueOf(1));
+            }
+        }
+
+        // calculate leaf node frequency
+        if (leafNodeFrequency.containsKey(text)) {
+            leafNodeFrequency.put(text, leafNodeFrequency.get(text) + 1);
+        } else {
+            leafNodeFrequency.put(text, Double.valueOf(1));
+        }
+        super.visitTerminal(node);
     }
 }

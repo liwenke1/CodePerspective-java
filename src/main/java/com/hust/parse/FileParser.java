@@ -105,8 +105,8 @@ public class FileParser {
         fileFeatures.put("WordUnigramFrequency", new DictResult(wordUnigramTF));
     }
 
-    public void calculateControlKeywordNumber() {
-        fileFeatures.put("ControlKeywordNumber", new ScalarResult(listener.controlStructureNumber));
+    public void calculateControlNumber() {
+        fileFeatures.put("ControlStructureNumber", new ScalarResult(listener.controlStructureNumber));
     }
 
     public void calculateTernaryNumber() {
@@ -127,15 +127,6 @@ public class FileParser {
 
     public void calculateLiteralNumber() {
         fileFeatures.put("LiteralNumber", new ScalarResult(listener.literalNumber));
-    }
-
-    public void calculateKeywordNumber(CommonTokenStream tokens) {
-        Set<Integer> keywordType = new HashSet<>();
-        // keyword type index is from 1 to 66
-        for (int i = 0; i <= 66; i++) {
-            keywordType.add(i);
-        }
-        fileFeatures.put("KeywordNumber", new ScalarResult(tokens.getTokens(0, tokens.size() - 1, keywordType).size()));
     }
 
     public void calculateFunctionNumber() {
@@ -270,6 +261,43 @@ public class FileParser {
             }
         }
         fileFeatures.put("NewLineBeforeOpenBrance", new ScalarResult(newLineNumber > onLineNumber ? 1 : 0));
+    }
+
+    public void calculateTypeNodeFeature() {
+        double typeNodeAverageDepth = 0;
+        for (int depth : listener.typeNodeDepth) {
+            typeNodeAverageDepth += depth;
+        }
+        typeNodeAverageDepth /= listener.typeNodeDepth.size();
+        fileFeatures.put("TypeNodeFrequency", new DictResult(listener.typeNodeFrequency));
+        fileFeatures.put("TypeNodeAverageDepth", new ScalarResult(typeNodeAverageDepth));
+    }
+
+    public void calculateLeafNodeFeatureAndMaxDepthASTNode() {
+        double leafNodeAverageDepth = 0;
+        int MaxDepthASTNode = 0;
+        for (int depth : listener.leafNodeDepth) {
+            if (depth > MaxDepthASTNode) {
+                MaxDepthASTNode = depth;
+            }
+            leafNodeAverageDepth += depth;
+        }
+        leafNodeAverageDepth /= listener.leafNodeDepth.size();
+        fileFeatures.put("LeafNodeFrequency", new DictResult(listener.leafNodeFrequency));
+        fileFeatures.put("LeafNodeAverageDepth", new ScalarResult(leafNodeAverageDepth));
+        fileFeatures.put("MaxDepthASTNode", new ScalarResult(MaxDepthASTNode));
+    }
+
+    public void calculateKeywordNumberAndFrequency() {
+        int keywordNumber = 0;
+        for (Double number : listener.keywordFrequency.values()) {
+            keywordNumber += number;
+        }
+        for (String keyword : listener.keywordFrequency.keySet()) {
+            listener.keywordFrequency.put(keyword, listener.keywordFrequency.get(keyword) / keywordNumber);
+        }
+        fileFeatures.put("KeywordNumber", new ScalarResult(keywordNumber));
+        fileFeatures.put("KeywordTF", new DictResult(listener.keywordFrequency));
     }
 
     private String[] readFileAllLines(String fileName) throws IOException {
