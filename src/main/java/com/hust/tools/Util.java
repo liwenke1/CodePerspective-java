@@ -1,5 +1,9 @@
 package com.hust.tools;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Util {
@@ -45,5 +49,19 @@ public class Util {
 
     public static double standardDeviation(int[] list) {
         return Math.sqrt(variance(list));
+    }
+
+    public static String[] readFileAllLines(String fileName) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        try {
+            List<String> lines = new ArrayList<String>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            return lines.toArray(new String[lines.size()]);
+        } finally {
+            br.close();
+        }
     }
 }

@@ -1,7 +1,5 @@
 package com.hust.parse;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +47,8 @@ public class FileParser {
         return count;
     }
 
-    public void calculateUsage(String code) {
+    @Deprecated
+    protected void calculateUsage(String code) {
         String[] newRules = new String[] {
                 "->", ".stream", "Instant.", "LocalDate.", "LocalTime.",
                 "LocalDateTime.", "ZonedDateTime.", "Period.",
@@ -81,7 +80,8 @@ public class FileParser {
         fileFeatures.put("SafetyUsageNumber", new ScalarResult(safetyUsageNumber));
     }
 
-    public double calculateFunctionAverageLength() {
+    @Deprecated
+    protected double calculateFunctionAverageLength() {
         if (listener.functionList.size() == 0) {
             return 0;
         }
@@ -92,7 +92,7 @@ public class FileParser {
         return sum / listener.functionList.size();
     }
 
-    public void calculateWordUnigramFrequency(String fileData) {
+    private void calculateWordUnigramFrequency(String fileData) {
         String[] wordUnigrams = fileData.split("\\s+");
         Map<String, Double> wordUnigramTF = new HashMap<>();
         for (String word : wordUnigrams) {
@@ -105,31 +105,32 @@ public class FileParser {
         fileFeatures.put("WordUnigramFrequency", new DictResult(wordUnigramTF));
     }
 
-    public void calculateControlNumber() {
+    private void calculateControlNumber() {
         fileFeatures.put("ControlStructureNumber", new ScalarResult(listener.controlStructureNumber));
     }
 
-    public void calculateTernaryNumber() {
+    private void calculateTernaryNumber() {
         fileFeatures.put("TernaryNumber", new ScalarResult(listener.ternaryOperatorNumber));
     }
 
-    public void calculateTokenNumber(String fileData) {
+    private void calculateTokenNumber(String fileData) {
         fileFeatures.put("TokenNumber",
                 new ScalarResult(fileData.split("[*;\\{\\}\\[\\]()+=\\-&/|%!?:,<>~`\\s\"]").length));
     }
 
-    public void calculateCommentNumber(CommonTokenStream tokens) {
+    private void calculateCommentNumber(CommonTokenStream tokens) {
         Set<Integer> commentType = new HashSet<Integer>();
         commentType.add(JavaLexer.LINE_COMMENT);
         commentType.add(JavaLexer.COMMENT);
-        fileFeatures.put("CommentNumber", new ScalarResult(tokens.getTokens(0, tokens.size() - 1, commentType).size()));
+        List<Token> commentList = tokens.getTokens(0, tokens.size() - 1, commentType);
+        fileFeatures.put("CommentNumber", new ScalarResult(commentList == null ? 0 : commentList.size()));
     }
 
-    public void calculateLiteralNumber() {
+    private void calculateLiteralNumber() {
         fileFeatures.put("LiteralNumber", new ScalarResult(listener.literalNumber));
     }
 
-    public void calculateFunctionNumber() {
+    private void calculateFunctionNumber() {
         fileFeatures.put("FunctionNumber", new ScalarResult(listener.functionList.size()));
     }
 
@@ -147,7 +148,8 @@ public class FileParser {
         return variance;
     }
 
-    public double calculateVariableLocationVariance() {
+    @Deprecated
+    protected double calculateVariableLocationVariance() {
         if (listener.functionList.size() == 0) {
             return 0;
         }
@@ -162,7 +164,7 @@ public class FileParser {
         return calculateVariable(variableRelativeLocation);
     }
 
-    public void calculateAverageAndVarianceOfFunctionParamNumber() {
+    private void calculateAverageAndVarianceOfFunctionParamNumber() {
         if (listener.functionList.size() == 0) {
             return;
         }
@@ -175,7 +177,7 @@ public class FileParser {
                 new ScalarResult(Util.standardDeviation(functionParamNumber)));
     }
 
-    public void calculateAverageAndVarianceOfLineLength(String[] fileAllLines) {
+    private void calculateAverageAndVarianceOfLineLength(String[] fileAllLines) {
         if (fileAllLines.length == 0) {
             return;
         }
@@ -187,11 +189,11 @@ public class FileParser {
         fileFeatures.put("VarianceOfLineLength", new ScalarResult(Util.standardDeviation(lineLength)));
     }
 
-    public void calculateNestingDepth() {
+    private void calculateNestingDepth() {
         fileFeatures.put("NestingDepth", new ScalarResult(listener.nestingDepth));
     }
 
-    public void calculateBranchingFactor() {
+    private void calculateBranchingFactor() {
         double branchingFactor = 0;
         for (int branchingNumber : listener.branchingNumberList) {
             branchingFactor += branchingNumber;
@@ -200,7 +202,7 @@ public class FileParser {
         fileFeatures.put("BranchingFactor", new ScalarResult(branchingFactor));
     }
 
-    public void calcluateWhiteSpaceChar(String fileData) {
+    private void calcluateWhiteSpaceChar(String fileData) {
         int whiteSpaceNumber = 0;
         int tabNumber = 0;
         int spaceNumber = 0;
@@ -220,11 +222,14 @@ public class FileParser {
         fileFeatures.put("WhiteSpaceNumber", new ScalarResult(whiteSpaceNumber));
     }
 
-    public void calcluateTabOrSpaceLeadLinesAndEmptyLineNumber(String[] fileAllLines) {
+    private void calcluateTabOrSpaceLeadLinesAndEmptyLineNumber(String[] fileAllLines) {
         int tabLeadNumber = 0;
         int spaceLeadNumber = 0;
         int emptyLineNumber = 0;
         for (String line : fileAllLines) {
+            if (line.length() == 0) {
+                continue;
+            }
             if (line.charAt(0) == '\t') {
                 tabLeadNumber += 1;
             } else if (line.charAt(0) == ' ') {
@@ -238,7 +243,7 @@ public class FileParser {
         fileFeatures.put("EmptyLineNumber", new ScalarResult(emptyLineNumber));
     }
 
-    public void calculateNewLineOrOnLineBeforeOpenBrance(CommonTokenStream tokens) {
+    private void calculateNewLineOrOnLineBeforeOpenBrance(CommonTokenStream tokens) {
         int newLineNumber = 0;
         int onLineNumber = 0;
         for (Token token : tokens.getTokens()) {
@@ -263,7 +268,7 @@ public class FileParser {
         fileFeatures.put("NewLineBeforeOpenBrance", new ScalarResult(newLineNumber > onLineNumber ? 1 : 0));
     }
 
-    public void calculateTypeNodeFeature() {
+    private void calculateTypeNodeFeature() {
         double typeNodeAverageDepth = 0;
         for (int depth : listener.typeNodeDepth) {
             typeNodeAverageDepth += depth;
@@ -273,7 +278,7 @@ public class FileParser {
         fileFeatures.put("TypeNodeAverageDepth", new ScalarResult(typeNodeAverageDepth));
     }
 
-    public void calculateLeafNodeFeatureAndMaxDepthASTNode() {
+    private void calculateLeafNodeFeatureAndMaxDepthASTNode() {
         double leafNodeAverageDepth = 0;
         int MaxDepthASTNode = 0;
         for (int depth : listener.leafNodeDepth) {
@@ -288,7 +293,7 @@ public class FileParser {
         fileFeatures.put("MaxDepthASTNode", new ScalarResult(MaxDepthASTNode));
     }
 
-    public void calculateKeywordNumberAndFrequency() {
+    private void calculateKeywordNumberAndFrequency() {
         int keywordNumber = 0;
         for (Double number : listener.keywordFrequency.values()) {
             keywordNumber += number;
@@ -300,54 +305,74 @@ public class FileParser {
         fileFeatures.put("KeywordTF", new DictResult(listener.keywordFrequency));
     }
 
-    private String[] readFileAllLines(String fileName) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(fileName));
+    private void extractLexicalFeature(String fileData, String[] fileAllLines, CommonTokenStream tokens) {
+        calculateWordUnigramFrequency(fileData);
+        calculateControlNumber();
+        calculateTernaryNumber();
+        calculateTokenNumber(fileData);
+        calculateCommentNumber(tokens);
+        calculateLiteralNumber();
+        calculateFunctionNumber();
+        calculateNestingDepth();
+        calculateBranchingFactor();
+        calculateAverageAndVarianceOfFunctionParamNumber();
+        calculateAverageAndVarianceOfLineLength(fileAllLines);
+    }
+
+    private void extractLayoutFeature(String fileData, String[] fileAllLines, CommonTokenStream tokens) {
+        calcluateTabOrSpaceLeadLinesAndEmptyLineNumber(fileAllLines);
+        calcluateWhiteSpaceChar(fileData);
+        calculateNewLineOrOnLineBeforeOpenBrance(tokens);
+    }
+
+    private void extractSyntacticFeature() {
+        calculateLeafNodeFeatureAndMaxDepthASTNode();
+        calculateTypeNodeFeature();
+        calculateKeywordNumberAndFrequency();
+    }
+
+    private CommonTokenStream extractOriginalFeature(String fileData) {
+        CharStream charStream = CharStreams.fromString(fileData);
+        JavaLexer lexer = new JavaLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        JavaParser parser = new JavaParser(tokens);
+        ParseTreeWalker walker = new ParseTreeWalker();
+        JavaExtract listener = new JavaExtract();
+        walker.walk(listener, parser.compilationUnit());
+        return tokens;
+    }
+
+    private String[] readFileLines(String fileName) {
+        String[] fileAllLines = new String[] {};
         try {
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
-            }
-            return lines.toArray(new String[lines.size()]);
-        } finally {
-            br.close();
+            fileAllLines = Util.readFileAllLines(fileName);
+        } catch (IOException e) {
+            System.out.println(e);
         }
+        return fileAllLines;
+    }
+
+    // TODO
+    private void outputFeatureToFile() {
     }
 
     public void parseFile(String fileName) {
-        String[] fileAllLines = new String[] {};
-        try {
-            fileAllLines = readFileAllLines(fileName);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+        String[] fileAllLines = readFileLines(fileName);
         String fileData = String.join("\n", fileAllLines);
+
         fileFeatures.put("FileLength", new ScalarResult(fileData.length()));
         fileFeatures.put("FileLineNumber", new ScalarResult(fileAllLines.length));
+
+        CommonTokenStream tokens = extractOriginalFeature(fileData);
+        extractLexicalFeature(fileData, fileAllLines, tokens);
+        extractLayoutFeature(fileData, fileAllLines, tokens);
+        extractSyntacticFeature();
+
+        outputFeatureToFile();
     }
 
     public static void main(String[] args) {
-        // Pattern pattern = Pattern.compile("abc");
-        // Matcher m = pattern.matcher("abcabcabc dd abc");
-        // int count = 0;
-
-        // while (m.find()) {
-        // count++;
-        // System.out.println("Match number " + count);
-        // System.out.println("start(): " + m.start());
-        // System.out.println("end(): " + m.end());
-        // }
-        try {
-            CharStream charStream = CharStreams.fromFileName("src/main/java/com/hust/model/Function.java");
-            JavaLexer lexer = new JavaLexer(charStream);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            JavaParser parser = new JavaParser(tokens);
-            ParseTreeWalker walker = new ParseTreeWalker();
-            JavaExtract listener = new JavaExtract();
-            walker.walk(listener, parser.compilationUnit());
-            System.out.println(tokens.getNumberOfOnChannelTokens());
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+        FileParser fileParser = new FileParser();
+        fileParser.parseFile("src\\main\\java\\com\\hust\\output\\Result.java");
     }
 }

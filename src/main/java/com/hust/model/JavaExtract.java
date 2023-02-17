@@ -96,6 +96,7 @@ public class JavaExtract extends JavaParserBaseListener {
         literalNumber = 0;
         nestingDepth = 0;
         nestingLocalDepth = 0;
+        branchingNumberList = new ArrayList<Integer>();
 
         accessControlCount = new HashMap<String, Integer>();
         accessControlCount.put("Default", 0);
