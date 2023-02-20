@@ -352,10 +352,6 @@ public class FileParser {
         return fileAllLines;
     }
 
-    // TODO
-    private void outputFeatureToFile() {
-    }
-
     public void parseFile(String fileName) {
         String[] fileAllLines = readFileLines(fileName);
         String fileData = String.join("\n", fileAllLines);
@@ -367,12 +363,5 @@ public class FileParser {
         extractLexicalFeature(fileData, fileAllLines, tokens);
         extractLayoutFeature(fileData, fileAllLines, tokens);
         extractSyntacticFeature();
-
-        outputFeatureToFile();
-    }
-
-    public static void main(String[] args) {
-        FileParser fileParser = new FileParser();
-        fileParser.parseFile("src\\main\\java\\com\\hust\\output\\Result.java");
     }
 }
