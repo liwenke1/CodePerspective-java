@@ -237,18 +237,18 @@ public class JavaExtract extends JavaParserBaseListener {
 
     @Override
     public void enterLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
-        String typeName = ctx.typeType().getText();
+        // String typeName = ctx.typeType().getText();
         if (functionList.size() != 0) {
             if (ctx.identifier() != null) {
                 IdentifierContext identifier = ctx.identifier();
                 functionList.get(functionList.size() - 1).localVariables
                         .add(new Variable(identifier.getText(),
-                                typeName, identifier.start.getLine(), identifier.start.getCharPositionInLine()));
+                                "", identifier.start.getLine(), identifier.start.getCharPositionInLine()));
             } else {
                 List<VariableDeclaratorContext> variableList = ctx.variableDeclarators().variableDeclarator();
                 for (VariableDeclaratorContext variable : variableList) {
                     functionList.get(functionList.size() - 1).localVariables
-                            .add(new Variable(variable.variableDeclaratorId().getText(), typeName,
+                            .add(new Variable(variable.variableDeclaratorId().getText(), "",
                                     variable.variableDeclaratorId().start.getLine(),
                                     variable.variableDeclaratorId().start.getCharPositionInLine()));
                 }
@@ -337,9 +337,11 @@ public class JavaExtract extends JavaParserBaseListener {
     public void enterEveryRule(ParserRuleContext ctx) {
         // calculate node depth, including type node and leaf node
         typeNodeDepth.add(ctx.depth());
-        for (ParseTree child : ctx.children) {
-            if (child instanceof TerminalNode) {
-                leafNodeDepth.add(ctx.depth() + 1);
+        if (ctx.children != null) {
+            for (ParseTree child : ctx.children) {
+                if (child instanceof TerminalNode) {
+                    leafNodeDepth.add(ctx.depth() + 1);
+                }
             }
         }
 

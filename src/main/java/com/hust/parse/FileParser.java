@@ -165,6 +165,9 @@ public class FileParser {
 
     private void calculateAverageAndVarianceOfFunctionParamNumber() {
         if (listener.functionList.size() == 0) {
+            fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(0));
+            fileFeatures.put("VarianceOfFunctionParamNumber",
+                    new ScalarResult(0));
             return;
         }
         int[] functionParamNumber = new int[listener.functionList.size()];
@@ -178,6 +181,8 @@ public class FileParser {
 
     private void calculateAverageAndVarianceOfLineLength(String[] fileAllLines) {
         if (fileAllLines.length == 0) {
+            fileFeatures.put("AverageOfLineLength", new ScalarResult(0));
+            fileFeatures.put("VarianceOfLineLength", new ScalarResult(0));
             return;
         }
         int[] lineLength = new int[fileAllLines.length];
