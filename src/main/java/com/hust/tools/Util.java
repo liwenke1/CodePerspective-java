@@ -96,11 +96,11 @@ public class Util {
             directories.clear();
             directories.addAll(subDirectories);
         }
-        Collections.sort(textFiles);
         return textFiles;
     }
 
-    public static void writeFile(String allLines, String fileName, boolean append) {
+    public static void writeFile(String allLines, String fileName) {
+        boolean append = true;
         File aFile = new File(fileName);
         FileWriter aFileWriter;
         try {
