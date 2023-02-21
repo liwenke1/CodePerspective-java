@@ -28,13 +28,9 @@ import com.hust.tools.Util;
 
 public class FileParser {
     JavaExtract listener;
-    ParseTreeWalker walker;
     Map<String, Result> fileFeatures;
 
     public FileParser() {
-        listener = new JavaExtract();
-        walker = new ParseTreeWalker();
-        fileFeatures = new HashMap<String, Result>();
     }
 
     private int countMatchNumber(String code, String rule) {
@@ -102,7 +98,10 @@ public class FileParser {
                 wordUnigramTF.put(word, Double.valueOf(1));
             }
         }
-        fileFeatures.put("WordUnigramFrequency", new DictResult(wordUnigramTF));
+        for (String key : wordUnigramTF.keySet()) {
+            wordUnigramTF.put(key, wordUnigramTF.get(key) / wordUnigrams.length);
+        }
+        fileFeatures.put("WordUnigramTF", new DictResult(wordUnigramTF));
     }
 
     private void calculateControlNumber() {
@@ -337,7 +336,7 @@ public class FileParser {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         JavaParser parser = new JavaParser(tokens);
         ParseTreeWalker walker = new ParseTreeWalker();
-        JavaExtract listener = new JavaExtract();
+        listener = new JavaExtract();
         walker.walk(listener, parser.compilationUnit());
         return tokens;
     }
@@ -352,10 +351,11 @@ public class FileParser {
         return fileAllLines;
     }
 
-    public void parseFile(String fileName) {
+    public Map<String, Result> parseFile(String fileName) {
         String[] fileAllLines = readFileLines(fileName);
         String fileData = String.join("\n", fileAllLines);
 
+        fileFeatures = new HashMap<String, Result>();
         fileFeatures.put("FileLength", new ScalarResult(fileData.length()));
         fileFeatures.put("FileLineNumber", new ScalarResult(fileAllLines.length));
 
@@ -363,5 +363,6 @@ public class FileParser {
         extractLexicalFeature(fileData, fileAllLines, tokens);
         extractLayoutFeature(fileData, fileAllLines, tokens);
         extractSyntacticFeature();
+        return fileFeatures;
     }
 }
