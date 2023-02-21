@@ -2,6 +2,7 @@ package com.hust;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,17 @@ public class App {
             parseResultList.add(fileParser.parseFile(filePathList.get(i).getAbsolutePath()));
         }
         return parseResultList;
+    }
+
+    public static Map<String, Integer> extractAuthorId(List<File> filePathList) {
+        Map<String, Integer> authorId = new HashMap<>();
+        for (File file : filePathList) {
+            String authorName = file.getPath().split("/|\\\\")[4];
+            if (!authorId.containsKey(authorName)) {
+                authorId.put(authorName, authorId.size() + 1);
+            }
+        }
+        return authorId;
     }
 
     public static String[] extractWordUnigramList(List<Map<String, Result>> parseResultList) {
@@ -105,7 +117,7 @@ public class App {
         writeString.append("@attribute AverageFunctionParamNumber numeric\n");
         writeString.append("@attribute VarianceFunctionParamNumber numeric\n");
         writeString.append("@attribute AverageLineLength numeric\n");
-        writeString.append("@attribute VarianceAverageLineLength numeric\n");
+        writeString.append("@attribute VarianceAverageLineLength numeric\n\n");
         Util.writeFile(writeString.toString(), outputFileName);
     }
 
@@ -130,10 +142,11 @@ public class App {
             typeNodeList[i] = typeNodeList[i].replace("'", "apostrophesymbol");
             writeString.append("@attribute 'TypeNodeTF " + i + "=[" + typeNodeList[i] + "]' numeric\n");
         }
-        for (int i = 0; i < typeNodeList.length; i++) {
-            typeNodeList[i] = typeNodeList[i].replace("'", "apostrophesymbol");
-            writeString.append("@attribute 'TypeNodeTFIDF " + i + "=[" + typeNodeList[i] + "]' numeric\n");
-        }
+        // for (int i = 0; i < typeNodeList.length; i++) {
+        // typeNodeList[i] = typeNodeList[i].replace("'", "apostrophesymbol");
+        // writeString.append("@attribute 'TypeNodeTFIDF " + i + "=[" + typeNodeList[i]
+        // + "]' numeric\n");
+        // }
         writeString.append("@attribute TypeNodeAverageDepth numeric\n");
         for (int i = 0; i < keywordList.length; i++) {
             keywordList[i] = keywordList[i].replace("'", "apostrophesymbol");
@@ -143,10 +156,11 @@ public class App {
             leafNodeList[i] = leafNodeList[i].replace("'", "apostrophesymbol");
             writeString.append("@attribute 'LeafNodeTF " + i + "=[" + leafNodeList[i] + "]' numeric\n");
         }
-        for (int i = 0; i < leafNodeList.length; i++) {
-            leafNodeList[i] = leafNodeList[i].replace("'", "apostrophesymbol");
-            writeString.append("@attribute 'LeafNodeTFIDF " + i + "=[" + leafNodeList[i] + "]' numeric\n");
-        }
+        // for (int i = 0; i < leafNodeList.length; i++) {
+        // leafNodeList[i] = leafNodeList[i].replace("'", "apostrophesymbol");
+        // writeString.append("@attribute 'LeafNodeTFIDF " + i + "=[" + leafNodeList[i]
+        // + "]' numeric\n");
+        // }
         writeString.append("@attribute LeafNodeAverageDepth numeric\n\n");
         Util.writeFile(writeString.toString(), outputFileName);
     }
@@ -155,8 +169,8 @@ public class App {
         Util.writeFile("@data\n", outputFileName);
     }
 
-    public static void writeDataAboutLabel(String authorName, String gender, String outputFileName) {
-        Util.writeFile(authorName + ",", outputFileName);
+    public static void writeDataAboutLabel(int authorId, String gender, String outputFileName) {
+        Util.writeFile(authorId + ",", outputFileName);
     }
 
     // write data lexical features
@@ -174,7 +188,6 @@ public class App {
             }
         }
         writeString.append(fileFeatures.get("ControlStructureNumber").getScalarResult() / fileLength + ",");
-        writeString.append(fileFeatures.get("ControlStructureNumber").getScalarResult() / fileLength + ",");
         writeString.append(fileFeatures.get("TernaryNumber").getScalarResult() / fileLength + ",");
         writeString.append(fileFeatures.get("TokenNumber").getScalarResult() / fileLength + ",");
         writeString.append(fileFeatures.get("CommentNumber").getScalarResult() / fileLength + ",");
@@ -186,7 +199,7 @@ public class App {
         writeString.append(fileFeatures.get("AverageOfFunctionParamNumber").getScalarResult() + ",");
         writeString.append(fileFeatures.get("VarianceOfFunctionParamNumber").getScalarResult() + ",");
         writeString.append(fileFeatures.get("AverageOfLineLength").getScalarResult() + ",");
-        writeString.append(fileFeatures.get("VarianceOfLineLength").getScalarResult() + ",");
+        writeString.append(fileFeatures.get("VarianceOfLineLength").getScalarResult() + "\n");
         Util.writeFile(writeString.toString(), outputFileName);
     }
 
@@ -238,14 +251,11 @@ public class App {
         String sourceCodeDir = "D:\\Code\\dataset\\40authors";
         List<File> filePathList = Util.listJavaFiles(sourceCodeDir);
         List<Map<String, Result>> parseResultList = parseFilePathList(filePathList);
+        Map<String, Integer> authorId = extractAuthorId(filePathList);
         String[] wordUnigramList = extractWordUnigramList(parseResultList);
         String[] keywordList = extractKeywordList(parseResultList);
         String[] typeNodeList = extractTypeNodeList(parseResultList);
         String[] leafNodeList = extractLeafNodeList(parseResultList);
-
-        System.out.println("parse time cost : ");
-        System.out.println(System.currentTimeMillis() - start);
-        start = System.currentTimeMillis();
 
         // write relation field
         writeRelation(outputFileName);
@@ -254,7 +264,8 @@ public class App {
         writeAttributeAboutLabel(outputFileName);
         writeAttributeAboutLexicalFeatures(wordUnigramList, outputFileName);
         writeAttributeAboutLayoutFeatures(outputFileName);
-        writeAttributeAboutSyntanticFeatures(keywordList, typeNodeList, leafNodeList, outputFileName);
+        writeAttributeAboutSyntanticFeatures(keywordList, typeNodeList, leafNodeList,
+                outputFileName);
 
         writeDataField(outputFileName);
         // write data field
@@ -263,12 +274,13 @@ public class App {
             Map<String, Result> fileFeatures = parseResultList.get(i);
             String authorName = filePathList.get(i).getPath().split("/|\\\\")[4];
             String gender = filePathList.get(i).getPath().split("/|\\\\")[0];
-            writeDataAboutLabel(authorName, gender, outputFileName);
+            writeDataAboutLabel(authorId.get(authorName), gender, outputFileName);
             writeDataAboutLexicalFeatures(fileFeatures, wordUnigramList, outputFileName);
             writeDataAboutLayoutFeatures(fileFeatures, outputFileName);
-            writeDataAboutSyntanticFeatures(fileFeatures, keywordList, typeNodeList, leafNodeList, outputFileName);
+            writeDataAboutSyntanticFeatures(fileFeatures, keywordList, typeNodeList,
+                    leafNodeList, outputFileName);
         }
-        System.out.println("save time cost : ");
+        System.out.println("time cost : ");
         System.out.println(System.currentTimeMillis() - start);
     }
 }
