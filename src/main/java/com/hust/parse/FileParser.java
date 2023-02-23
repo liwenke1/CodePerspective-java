@@ -16,8 +16,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import com.hust.antlr.JavaLexer;
-import com.hust.antlr.JavaParser;
+import com.hust.antlr.java.JavaLexer;
+import com.hust.antlr.java.JavaParser;
 import com.hust.model.Function;
 import com.hust.model.JavaExtract;
 import com.hust.model.Variable;

@@ -93,7 +93,7 @@ public class Util {
                 subDirectories.addAll(Arrays.asList(f.listFiles((FileFilter) DirectoryFileFilter.INSTANCE)));
                 if (!f.getPath().contains("202")) {
                     List<File> textFileList = Arrays.asList(f.listFiles(typeFilter));
-                    textFiles.addAll(textFileList.subList(0, Math.min(5, textFileList.size())));
+                    textFiles.addAll(textFileList.subList(0, Math.min(10, textFileList.size())));
                 }
             }
             directories.clear();
