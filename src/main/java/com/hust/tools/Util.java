@@ -84,6 +84,8 @@ public class Util {
 
         List<String> filterWildcards = new ArrayList<>();
         filterWildcards.add("*.java");
+        filterWildcards.add("*.cpp");
+        filterWildcards.add("*.c++");
 
         FileFilter typeFilter = new WildcardFileFilter(filterWildcards);
 

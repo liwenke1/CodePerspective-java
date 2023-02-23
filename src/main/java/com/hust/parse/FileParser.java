@@ -13,11 +13,16 @@ import java.util.regex.Pattern;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import com.hust.antlr.cpp.CPP14Lexer;
+import com.hust.antlr.cpp.CPP14Parser;
 import com.hust.antlr.java.JavaLexer;
 import com.hust.antlr.java.JavaParser;
+import com.hust.model.CppExtract;
+import com.hust.model.Extract;
 import com.hust.model.Function;
 import com.hust.model.JavaExtract;
 import com.hust.model.Variable;
@@ -27,7 +32,7 @@ import com.hust.output.ScalarResult;
 import com.hust.tools.Util;
 
 public class FileParser {
-    JavaExtract listener;
+    Extract listener;
     Map<String, Result> fileFeatures;
 
     public FileParser() {
@@ -78,14 +83,14 @@ public class FileParser {
 
     @Deprecated
     protected double calculateFunctionAverageLength() {
-        if (listener.functionList.size() == 0) {
+        if (listener.getFunctionList().size() == 0) {
             return 0;
         }
         int sum = 0;
-        for (Function function : listener.functionList) {
+        for (Function function : listener.getFunctionList()) {
             sum += function.endLine - function.startLine + 1;
         }
-        return sum / listener.functionList.size();
+        return sum / listener.getFunctionList().size();
     }
 
     private void calculateWordUnigramFrequency(String fileData) {
@@ -105,11 +110,11 @@ public class FileParser {
     }
 
     private void calculateControlNumber() {
-        fileFeatures.put("ControlStructureNumber", new ScalarResult(listener.controlStructureNumber));
+        fileFeatures.put("ControlStructureNumber", new ScalarResult(listener.getControlStructureNumber()));
     }
 
     private void calculateTernaryNumber() {
-        fileFeatures.put("TernaryNumber", new ScalarResult(listener.ternaryOperatorNumber));
+        fileFeatures.put("TernaryNumber", new ScalarResult(listener.getTernaryOperatorNumber()));
     }
 
     private void calculateTokenNumber(String fileData) {
@@ -126,11 +131,11 @@ public class FileParser {
     }
 
     private void calculateLiteralNumber() {
-        fileFeatures.put("LiteralNumber", new ScalarResult(listener.literalNumber));
+        fileFeatures.put("LiteralNumber", new ScalarResult(listener.getLiteralNumber()));
     }
 
     private void calculateFunctionNumber() {
-        fileFeatures.put("FunctionNumber", new ScalarResult(listener.functionList.size()));
+        fileFeatures.put("FunctionNumber", new ScalarResult(listener.getFunctionList().size()));
     }
 
     // calculate variable 方差
@@ -149,11 +154,11 @@ public class FileParser {
 
     @Deprecated
     protected double calculateVariableLocationVariance() {
-        if (listener.functionList.size() == 0) {
+        if (listener.getFunctionList().size() == 0) {
             return 0;
         }
         List<Double> variableRelativeLocation = new ArrayList<>();
-        for (Function function : listener.functionList) {
+        for (Function function : listener.getFunctionList()) {
             int functionStartLine = function.startLine;
             int functionLength = function.endLine - function.startLine + 1;
             for (Variable variable : function.localVariables) {
@@ -164,15 +169,15 @@ public class FileParser {
     }
 
     private void calculateAverageAndVarianceOfFunctionParamNumber() {
-        if (listener.functionList.size() == 0) {
+        if (listener.getFunctionList().size() == 0) {
             fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(0));
             fileFeatures.put("VarianceOfFunctionParamNumber",
                     new ScalarResult(0));
             return;
         }
-        int[] functionParamNumber = new int[listener.functionList.size()];
-        for (int i = 0; i < listener.functionList.size(); i++) {
-            functionParamNumber[i] = listener.functionList.get(i).params.size();
+        int[] functionParamNumber = new int[listener.getFunctionList().size()];
+        for (int i = 0; i < listener.getFunctionList().size(); i++) {
+            functionParamNumber[i] = listener.getFunctionList().get(i).params.size();
         }
         fileFeatures.put("AverageOfFunctionParamNumber", new ScalarResult(Util.mean(functionParamNumber)));
         fileFeatures.put("VarianceOfFunctionParamNumber",
@@ -194,15 +199,15 @@ public class FileParser {
     }
 
     private void calculateNestingDepth() {
-        fileFeatures.put("NestingDepth", new ScalarResult(listener.nestingDepth));
+        fileFeatures.put("NestingDepth", new ScalarResult(listener.getNestingDepth()));
     }
 
     private void calculateBranchingFactor() {
         double branchingFactor = 0;
-        for (int branchingNumber : listener.branchingNumberList) {
+        for (int branchingNumber : listener.getBranchingNumberList()) {
             branchingFactor += branchingNumber;
         }
-        branchingFactor /= listener.branchingNumberList.size();
+        branchingFactor /= listener.getBranchingNumberList().size();
         fileFeatures.put("BranchingFactor", new ScalarResult(branchingFactor));
     }
 
@@ -274,39 +279,39 @@ public class FileParser {
 
     private void calculateTypeNodeFeature() {
         double typeNodeAverageDepth = 0;
-        for (int depth : listener.typeNodeDepth) {
+        for (int depth : listener.getTypeNodeDepth()) {
             typeNodeAverageDepth += depth;
         }
-        typeNodeAverageDepth /= listener.typeNodeDepth.size();
-        fileFeatures.put("TypeNodeFrequency", new DictResult(listener.typeNodeFrequency));
+        typeNodeAverageDepth /= listener.getTypeNodeDepth().size();
+        fileFeatures.put("TypeNodeFrequency", new DictResult(listener.getTypeNodeFrequency()));
         fileFeatures.put("TypeNodeAverageDepth", new ScalarResult(typeNodeAverageDepth));
     }
 
     private void calculateLeafNodeFeatureAndMaxDepthASTNode() {
         double leafNodeAverageDepth = 0;
         int MaxDepthASTNode = 0;
-        for (int depth : listener.leafNodeDepth) {
+        for (int depth : listener.getLeafNodeDepth()) {
             if (depth > MaxDepthASTNode) {
                 MaxDepthASTNode = depth;
             }
             leafNodeAverageDepth += depth;
         }
-        leafNodeAverageDepth /= listener.leafNodeDepth.size();
-        fileFeatures.put("LeafNodeFrequency", new DictResult(listener.leafNodeFrequency));
+        leafNodeAverageDepth /= listener.getLeafNodeDepth().size();
+        fileFeatures.put("LeafNodeFrequency", new DictResult(listener.getLeafNodeFrequency()));
         fileFeatures.put("LeafNodeAverageDepth", new ScalarResult(leafNodeAverageDepth));
         fileFeatures.put("MaxDepthASTNode", new ScalarResult(MaxDepthASTNode));
     }
 
     private void calculateKeywordNumberAndFrequency() {
         int keywordNumber = 0;
-        for (Double number : listener.keywordFrequency.values()) {
+        for (Double number : listener.getKeywordFrequency().values()) {
             keywordNumber += number;
         }
-        for (String keyword : listener.keywordFrequency.keySet()) {
-            listener.keywordFrequency.put(keyword, listener.keywordFrequency.get(keyword) / keywordNumber);
+        for (String keyword : listener.getKeywordFrequency().keySet()) {
+            listener.getKeywordFrequency().put(keyword, listener.getKeywordFrequency().get(keyword) / keywordNumber);
         }
         fileFeatures.put("KeywordNumber", new ScalarResult(keywordNumber));
-        fileFeatures.put("KeywordTF", new DictResult(listener.keywordFrequency));
+        fileFeatures.put("KeywordTF", new DictResult(listener.getKeywordFrequency()));
     }
 
     private void extractLexicalFeature(String fileData, String[] fileAllLines, CommonTokenStream tokens) {
@@ -335,7 +340,7 @@ public class FileParser {
         calculateKeywordNumberAndFrequency();
     }
 
-    private CommonTokenStream extractOriginalFeature(String fileData) {
+    private CommonTokenStream extractOriginFeatureForJava(String fileData) {
         CharStream charStream = CharStreams.fromString(fileData);
         JavaLexer lexer = new JavaLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -343,6 +348,36 @@ public class FileParser {
         ParseTreeWalker walker = new ParseTreeWalker();
         listener = new JavaExtract();
         walker.walk(listener, parser.compilationUnit());
+        return tokens;
+    }
+
+    private CommonTokenStream extractOriginFeatureForCpp(String fileData) {
+        CharStream charStream = CharStreams.fromString(fileData);
+        CPP14Lexer lexer = new CPP14Lexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        CPP14Parser parser = new CPP14Parser(tokens);
+        ParseTreeWalker walker = new ParseTreeWalker();
+        listener = new CppExtract();
+        walker.walk(listener, parser.translationUnit());
+        return tokens;
+    }
+
+    private CommonTokenStream extractOriginalFeature(String fileData, String fileName) {
+        String[] split = fileName.split("\\.");
+        String suffix = split[split.length - 1];
+        CommonTokenStream tokens;
+        switch (suffix) {
+            case "java":
+                tokens = extractOriginFeatureForJava(fileData);
+                break;
+            case "cpp":
+            case "c++":
+                tokens = extractOriginFeatureForCpp(fileData);
+                break;
+            default:
+                tokens = extractOriginFeatureForJava(fileData);
+                break;
+        }
         return tokens;
     }
 
@@ -364,10 +399,16 @@ public class FileParser {
         fileFeatures.put("FileLength", new ScalarResult(fileData.length()));
         fileFeatures.put("FileLineNumber", new ScalarResult(fileAllLines.length));
 
-        CommonTokenStream tokens = extractOriginalFeature(fileData);
+        CommonTokenStream tokens = extractOriginalFeature(fileData, fileName);
         extractLexicalFeature(fileData, fileAllLines, tokens);
         extractLayoutFeature(fileData, fileAllLines, tokens);
         extractSyntacticFeature();
         return fileFeatures;
+    }
+
+    public static void main(String[] args) {
+        FileParser fileParser = new FileParser();
+        Map<String, Result> fileFeatures = fileParser.parseFile("D:\\Code\\dataset\\test.cpp");
+        System.out.println(fileFeatures);
     }
 }

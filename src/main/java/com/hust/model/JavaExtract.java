@@ -33,7 +33,7 @@ import com.hust.antlr.java.JavaParser.ReceiverParameterContext;
 import com.hust.antlr.java.JavaParser.StatementContext;
 import com.hust.antlr.java.JavaParser.VariableDeclaratorContext;
 
-public class JavaExtract extends JavaParserBaseListener {
+public class JavaExtract extends JavaParserBaseListener implements Extract {
 
     // function based features
     public int functionNumber;
@@ -376,5 +376,60 @@ public class JavaExtract extends JavaParserBaseListener {
             leafNodeFrequency.put(text, Double.valueOf(1));
         }
         super.visitTerminal(node);
+    }
+
+    @Override
+    public List<Integer> getBranchingNumberList() {
+        return branchingNumberList;
+    }
+
+    @Override
+    public List<Function> getFunctionList() {
+        return functionList;
+    }
+
+    @Override
+    public List<Integer> getLeafNodeDepth() {
+        return leafNodeDepth;
+    }
+
+    @Override
+    public int getLiteralNumber() {
+        return literalNumber;
+    }
+
+    @Override
+    public int getTernaryOperatorNumber() {
+        return ternaryOperatorNumber;
+    }
+
+    @Override
+    public int getNestingDepth() {
+        return nestingDepth;
+    }
+
+    @Override
+    public int getControlStructureNumber() {
+        return controlStructureNumber;
+    }
+
+    @Override
+    public Map<String, Double> getKeywordFrequency() {
+        return keywordFrequency;
+    }
+
+    @Override
+    public Map<String, Double> getLeafNodeFrequency() {
+        return leafNodeFrequency;
+    }
+
+    @Override
+    public List<Integer> getTypeNodeDepth() {
+        return typeNodeDepth;
+    }
+
+    @Override
+    public Map<String, Double> getTypeNodeFrequency() {
+        return typeNodeFrequency;
     }
 }
