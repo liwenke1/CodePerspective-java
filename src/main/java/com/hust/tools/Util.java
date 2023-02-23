@@ -8,8 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -91,7 +91,10 @@ public class Util {
             List<File> subDirectories = new ArrayList<File>();
             for (File f : directories) {
                 subDirectories.addAll(Arrays.asList(f.listFiles((FileFilter) DirectoryFileFilter.INSTANCE)));
-                textFiles.addAll(Arrays.asList(f.listFiles(typeFilter)));
+                if (!f.getPath().contains("202")) {
+                    List<File> textFileList = Arrays.asList(f.listFiles(typeFilter));
+                    textFiles.addAll(textFileList.subList(0, Math.min(5, textFileList.size())));
+                }
             }
             directories.clear();
             directories.addAll(subDirectories);
@@ -114,5 +117,24 @@ public class Util {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static float[] calculateTermFrequency(Map<String, Double> frequency, String[] allKeyList) {
+        int keyLength = allKeyList.length;
+        float[] termFrequency = new float[keyLength];
+        float sum = 0;
+        for (Double value : frequency.values()) {
+            sum += value;
+        }
+        for (int i = 0; i < keyLength; i++) {
+            allKeyList[i] = allKeyList[i].replace("'", "apostrophesymbol");
+            allKeyList[i] = allKeyList[i].replace("\n", "carriagereturn");
+            if (frequency.containsKey(allKeyList[i])) {
+                termFrequency[i] = (float) (frequency.get(allKeyList[i]) / sum);
+            } else {
+                termFrequency[i] = 0;
+            }
+        }
+        return termFrequency;
     }
 }
