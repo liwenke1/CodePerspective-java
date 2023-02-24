@@ -59,6 +59,11 @@ public class Util {
         return Math.sqrt(variance(list));
     }
 
+    public static boolean checkFileIsExist(String fileName) {
+        File file = new File(fileName);
+        return file.exists();
+    }
+
     public static String[] readFileAllLines(String fileName) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(fileName));
         try {
@@ -93,10 +98,8 @@ public class Util {
             List<File> subDirectories = new ArrayList<File>();
             for (File f : directories) {
                 subDirectories.addAll(Arrays.asList(f.listFiles((FileFilter) DirectoryFileFilter.INSTANCE)));
-                if (!f.getPath().contains("202")) {
-                    List<File> textFileList = Arrays.asList(f.listFiles(typeFilter));
-                    textFiles.addAll(textFileList.subList(0, Math.min(10, textFileList.size())));
-                }
+                List<File> textFileList = Arrays.asList(f.listFiles(typeFilter));
+                textFiles.addAll(textFileList.subList(0, Math.min(30, textFileList.size())));
             }
             directories.clear();
             directories.addAll(subDirectories);
