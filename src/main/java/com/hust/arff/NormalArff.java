@@ -75,10 +75,16 @@ public class NormalArff extends Arff {
     protected void writeDataAboutSyntanticFeatures(Map<String, Result> fileFeatures, String outputFileName) {
         StringBuilder writeString = new StringBuilder();
         writeString.append(fileFeatures.get("MaxDepthASTNode").getScalarResult() + ",");
-        float[] typeNodeTF = Util.calculateTermFrequency(fileFeatures.get("TypeNodeFrequency").getDictResult(),
-                typeNodeList);
-        for (float tf : typeNodeTF) {
-            writeString.append(tf + ",");
+        Map<String, Double> typeNodeTF = Util.calculateTermFrequency(
+                fileFeatures.get("TypeNodeFrequency").getDictResult());
+        for (String key : typeNodeList) {
+            key = key.replace("'", "apostrophesymbol");
+            key = key.replace("\n", "carriagereturn");
+            if (typeNodeTF.containsKey(key)) {
+                writeString.append(typeNodeTF.get(key) + ",");
+            } else {
+                writeString.append("0,");
+            }
         }
         writeString.append(fileFeatures.get("TypeNodeAverageDepth").getScalarResult() + ",");
         Map<String, Double> keywordTF = fileFeatures.get("KeywordTF").getDictResult();
@@ -91,12 +97,31 @@ public class NormalArff extends Arff {
                 writeString.append("0,");
             }
         }
-        float[] leafNodeTF = Util.calculateTermFrequency(fileFeatures.get("LeafNodeFrequency").getDictResult(),
-                leafNodeList);
-        for (float tf : leafNodeTF) {
-            writeString.append(tf + ",");
+        Map<String, Double> leafNodeTF = Util
+                .calculateTermFrequency(fileFeatures.get("LeafNodeFrequency").getDictResult());
+        for (String key : leafNodeList) {
+            key = key.replace("'", "apostrophesymbol");
+            key = key.replace("\n", "carriagereturn");
+            if (leafNodeTF.containsKey(key)) {
+                writeString.append(leafNodeTF.get(key) + ",");
+            } else {
+                writeString.append("0,");
+            }
         }
         writeString.append(fileFeatures.get("LeafNodeAverageDepth").getScalarResult() + ",");
         Util.writeFile(writeString.toString(), outputFileName);
+    }
+
+    @Override
+    protected void flush() {
+    }
+
+    public static void main(String[] args) {
+        float a = 22;
+        float b = 25;
+        float c = a / b;
+        Double d = Double.valueOf(c);
+        System.out.println(c + "-\n");
+        System.out.println(d + "-\n");
     }
 }

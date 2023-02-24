@@ -3,12 +3,11 @@ package com.hust;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import com.hust.arff.Arff;
-import com.hust.arff.NormalArff;
+import com.hust.arff.SparseArff;
 import com.hust.output.Result;
 import com.hust.parse.FileParser;
 import com.hust.tools.Util;
@@ -38,13 +37,13 @@ public class Main {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        String outputFileName = "D:\\Code\\dataset\\github-malicious-copy1.arff";
+        String outputFileName = "D:\\Code\\dataset\\github-malicious-copy2.arff";
         String sourceCodeDir = "D:\\Code\\dataset\\github-malicious-copy";
         List<File> filePathList = Util.listJavaFiles(sourceCodeDir);
         List<Map<String, Result>> parseResultList = parseFilePathList(filePathList);
         Map<String, Integer> authorId = extractAuthorId(filePathList);
 
-        Arff arff = new NormalArff(parseResultList);
+        Arff arff = new SparseArff(parseResultList);
         for (int i = 0; i < parseResultList.size(); i++) {
             System.out.println("-------- save file: " + filePathList.get(i).getPath() + " --------\n");
             Map<String, Result> fileFeatures = parseResultList.get(i);

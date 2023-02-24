@@ -175,7 +175,10 @@ public abstract class Arff {
         Util.writeFile("\n", outputFileName);
     }
 
+    protected abstract void flush();
+
     public void writeFile(int authorId, String gender, Map<String, Result> fileFeatures, String outputFileName) {
+        flush();
         if (!Util.checkFileIsExist(outputFileName)) {
             writeRelation(outputFileName);
             writeAttribute(outputFileName);
